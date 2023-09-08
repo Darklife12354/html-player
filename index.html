@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker MP3 Player</title>
+    <style>
+        /* Hacker-inspired CSS styles */
+        body {
+            background-color: #000;
+            color: #00ff00;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin: 20px 0;
+        }
+
+        #mp3Folder {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background-color: #000;
+            color: #00ff00;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        div {
+            margin: 20px auto;
+        }
+
+        button {
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0f0;
+        }
+
+        #songList {
+            text-align: left;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background-color: #000;
+            color: #00ff00;
+            overflow-y: scroll;
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hacker MP3 Player</h1>
+    
+    <!-- Input to select a folder containing MP3 files -->
+    <input type="file" id="mp3Folder" webkitdirectory directory multiple>
+    
+    <!-- Audio player -->
+    <audio id="audioPlayer" controls>
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Control buttons -->
+    <div>
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="nextBtn">Next</button>
+        <button id="prevBtn">Previous</button>
+        <button id="skip10SecBtn">Skip 10s</button>
+        <button id="shuffleBtn">Shuffle</button>
+    </div>
+
+    <!-- Song list -->
+    <div id="songList">
+        <!-- Song list will be displayed here -->
+    </div>
+
+    <script>
+        const mp3FolderInput = document.getElementById('mp3Folder');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const skip10SecBtn = document.getElementById('skip10SecBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const songList = document.getElementById('songList');
+
+        let songs = []; // Array to store the list of MP3 files
+        let shuffledSongs = []; // Shuffled array of songs
+        let currentSongIndex = 0; // Index of the currently playing song
+
+        mp3FolderInput.addEventListener('change', (event) => {
+            songs = Array.from(event.target.files); // Store selected MP3 files
+            shuffledSongs = shuffleArray([...songs]); // Shuffle the songs
+            displaySongList();
+            playSong(0); // Start playing the first song
+        });
+
+        // Display the list of songs
+        function displaySongList() {
+            songList.innerHTML = '';
+            shuffledSongs.forEach((song, index) => {
+                const listItem = document.createElement('div');
+                listItem.textContent = `Song ${index + 1}: ${song.name}`;
+                songList.appendChild(listItem);
+            });
+        }
+
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Play the song at the given index
+        function playSong(index) {
+            if (index >= 0 && index < shuffledSongs.length) {
+                currentSongIndex = index;
+                audioPlayer.src = URL.createObjectURL(shuffledSongs[currentSongIndex]);
+                audioPlayer.play();
+            }
+        }
+
+        playBtn.addEventListener('click', () => {
+            audioPlayer.play();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            audioPlayer.pause();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            playSong(currentSongIndex + 1);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            playSong(currentSongIndex - 1);
+        });
+
+        skip10SecBtn.addEventListener('click', () => {
+            audioPlayer.currentTime += 10;
+        });
+
+        shuffleBtn.addEventListener('click', () => {
+            shuffledSongs = shuffleArray([...songs]); // Reshuffle the songs
+            displaySongList();
+            playSong(0); // Start playing the first shuffled song
+        });
+    </script>
+</body>
+</html>
