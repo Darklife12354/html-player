@@ -3,169 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hacker MP3 Player</title>
+    <title>Custom Media Player</title>
     <style>
-        /* Hacker-inspired CSS styles */
+        /* Custom Styles for the Dark Theme */
         body {
-            background-color: #000;
-            color: #00ff00;
-            text-align: center;
-            font-family: 'Courier New', monospace;
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
         }
-
-        h1 {
-            font-size: 36px;
-            margin: 20px 0;
-        }
-
-        #mp3Folder {
-            display: block;
-            margin: 20px auto;
-            padding: 10px;
-            border: 2px solid #00ff00;
+    
+        #media-player {
+            width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #222;
+            border: 2px solid #444;
             border-radius: 5px;
-            background-color: #000;
-            color: #00ff00;
+            overflow-y: auto;
+            max-height: 100vh;
         }
-
-        audio {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
+    
+        #playlist {
+            list-style: none;
+            padding: 0;
         }
-
-        div {
-            margin: 20px auto;
-        }
-
-        button {
-            background-color: #00ff00;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 5px;
+    
+        #playlist li {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #444;
+            border-radius: 3px;
             cursor: pointer;
         }
-
-        button:hover {
-            background-color: #0f0;
+    
+        #playlist li.current {
+            background-color: #555;
         }
-
-        #songList {
-            text-align: left;
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 10px;
-            border: 2px solid #00ff00;
-            border-radius: 5px;
-            background-color: #000;
-            color: #00ff00;
-            overflow-y: scroll;
-            max-height: 200px;
+    
+        audio {
+            width: 100%;
+        }
+    
+        button {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+    
+        button:hover {
+            background-color: #666;
+        }
+    
+        #file-upload {
+            display: none;
+        }
+    
+        /* CSS Styles for Drag and Drop Indicator */
+        #drop-area {
+            width: 100%;
+            height: 100px;
+            border: 2px dashed #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+    
+        #drop-area:hover {
+            border-color: #666;
         }
     </style>
+    
 </head>
 <body>
-    <h1>Hacker MP3 Player</h1>
-    
-    <!-- Input to select a folder containing MP3 files -->
-    <input type="file" id="mp3Folder" webkitdirectory directory multiple>
-    
-    <!-- Audio player -->
-    <audio id="audioPlayer" controls>
-        Your browser does not support the audio element.
-    </audio>
-
-    <!-- Control buttons -->
-    <div>
-        <button id="playBtn">Play</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="nextBtn">Next</button>
-        <button id="prevBtn">Previous</button>
-        <button id="skip10SecBtn">Skip 10s</button>
-        <button id="shuffleBtn">Shuffle</button>
+    <div id="media-player">
+        <h1>Custom Media Player</h1>
+        <audio id="audio" controls autoplay>
+            Your browser does not support the audio element.
+        </audio>
+        <ul id="playlist">
+            <!-- Your playlist items will be added here -->
+        </ul>
+        <div id="controls">
+            <button id="prev-btn">Previous</button>
+            <button id="play-pause-btn">Play</button>
+            <button id="next-btn">Next</button>
+            <button id="shuffle-btn">Shuffle</button>
+            <button id="loop-btn">Loop</button>
+            <label for="file-upload" id="upload-btn">Upload Folder</label>
+            <input type="file" id="file-upload" webkitdirectory directory multiple>
+        </div>
     </div>
-
-    <!-- Song list -->
-    <div id="songList">
-        <!-- Song list will be displayed here -->
+    <div id="drop-area">
+        <p>Drag and drop a folder here to add songs to the playlist.</p>
     </div>
-
     <script>
-        const mp3FolderInput = document.getElementById('mp3Folder');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const skip10SecBtn = document.getElementById('skip10SecBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        const songList = document.getElementById('songList');
+        // JavaScript for the Media Player
+        const audio = document.getElementById('audio');
+        const playlist = document.getElementById('playlist');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const loopBtn = document.getElementById('loop-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const fileUpload = document.getElementById('file-upload');
+        const dropArea = document.getElementById('drop-area');
 
-        let songs = []; // Array to store the list of MP3 files
-        let shuffledSongs = []; // Shuffled array of songs
-        let currentSongIndex = 0; // Index of the currently playing song
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let isLoopOn = false;
+        let playlistItems = [];
 
-        mp3FolderInput.addEventListener('change', (event) => {
-            songs = Array.from(event.target.files); // Store selected MP3 files
-            shuffledSongs = shuffleArray([...songs]); // Shuffle the songs
-            displaySongList();
-            playSong(0); // Start playing the first song
-        });
+        // Function to add a song to the playlist
+        function addSongToPlaylist(file) {
+            const li = document.createElement('li');
+            li.textContent = file.name;
+            playlist.appendChild(li);
+            playlistItems.push(file);
+            li.addEventListener('click', () => playSong(playlistItems.indexOf(file)));
+        }
 
-        // Display the list of songs
-        function displaySongList() {
-            songList.innerHTML = '';
-            shuffledSongs.forEach((song, index) => {
-                const listItem = document.createElement('div');
-                listItem.textContent = `Song ${index + 1}: ${song.name}`;
-                songList.appendChild(listItem);
+        // Function to play a song from the playlist
+        function playSong(index) {
+            if (index >= 0 && index < playlistItems.length) {
+                currentSongIndex = index;
+                audio.src = URL.createObjectURL(playlistItems[currentSongIndex]);
+                audio.play();
+                updatePlaylistUI();
+            }
+        }
+
+        // Function to update the playlist UI
+        function updatePlaylistUI() {
+            playlist.querySelectorAll('li').forEach((item, index) => {
+                if (index === currentSongIndex) {
+                    item.classList.add('current');
+                } else {
+                    item.classList.remove('current');
+                }
             });
         }
 
-        // Fisher-Yates shuffle algorithm
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        // Event listeners for the media player controls
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play();
             }
-            return array;
-        }
-
-        // Play the song at the given index
-        function playSong(index) {
-            if (index >= 0 && index < shuffledSongs.length) {
-                currentSongIndex = index;
-                audioPlayer.src = URL.createObjectURL(shuffledSongs[currentSongIndex]);
-                audioPlayer.play();
-            }
-        }
-
-        playBtn.addEventListener('click', () => {
-            audioPlayer.play();
-        });
-
-        pauseBtn.addEventListener('click', () => {
-            audioPlayer.pause();
+            isPlaying = !isPlaying;
+            playPauseBtn.textContent = isPlaying ? 'Pause' : 'Play';
         });
 
         nextBtn.addEventListener('click', () => {
-            playSong(currentSongIndex + 1);
+            currentSongIndex = (currentSongIndex + 1) % playlistItems.length;
+            playSong(currentSongIndex);
         });
 
         prevBtn.addEventListener('click', () => {
-            playSong(currentSongIndex - 1);
-        });
-
-        skip10SecBtn.addEventListener('click', () => {
-            audioPlayer.currentTime += 10;
+            currentSongIndex = (currentSongIndex - 1 + playlistItems.length) % playlistItems.length;
+            playSong(currentSongIndex);
         });
 
         shuffleBtn.addEventListener('click', () => {
-            shuffledSongs = shuffleArray([...songs]); // Reshuffle the songs
-            displaySongList();
-            playSong(0); // Start playing the first shuffled song
+            playlistItems.sort(() => Math.random() - 0.5);
+            playSong(0);
+            updatePlaylistUI();
+        });
+
+        loopBtn.addEventListener('click', () => {
+            isLoopOn = !isLoopOn;
+            loopBtn.textContent = isLoopOn ? 'Loop On' : 'Loop Off';
+            audio.loop = isLoopOn;
+        });
+
+        // Event listener for file upload
+        fileUpload.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            playlistItems = [];
+            playlist.innerHTML = '';
+            files.forEach((file) => {
+                if (file.type.startsWith('audio/')) {
+                    addSongToPlaylist(file);
+                }
+            });
+            playSong(0);
+        });
+
+        // Event listeners for drag and drop
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.border = '2px dashed #666';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.border = '2px dashed #444';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.border = '2px dashed #444';
+            const files = Array.from(e.dataTransfer.files);
+            playlistItems = [];
+            playlist.innerHTML = '';
+            files.forEach((file) => {
+                if (file.type.startsWith('audio/')) {
+                    addSongToPlaylist(file);
+                }
+            });
+            playSong(0);
+        });
+
+        // Autoplay the next song when the current one ends
+        audio.addEventListener('ended', () => {
+            if (!isLoopOn) {
+                currentSongIndex = (currentSongIndex + 1) % playlistItems.length;
+                playSong(currentSongIndex);
+            }
         });
     </script>
 </body>
