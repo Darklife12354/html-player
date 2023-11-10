@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Media Player</title>
     <link rel="manifest" href="pwa/manifest.json">
+
     <style>
+        
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -92,7 +94,11 @@
 </head>
 
 <body>
-
+    <script>
+        if (typeof navigator.serviceWorker !== 'undefined') {
+          navigator.serviceWorker.register('pwa/sw.js')
+        }
+      </script>
     <div id="player-container">
         <div id="progress-bar-container">
             <div id="progress-bar"></div>
