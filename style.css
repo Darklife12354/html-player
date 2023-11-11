@@ -13,7 +13,7 @@ body {
     background-color: #1e1e1e;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    margin-top: 50px;
+    margin-top: 25px;
 }
 
 #progress-bar-container {
@@ -90,4 +90,43 @@ body {
     #player-container {
         width: 100%;
     }
+}
+
+#searchInput {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    background-color: #383838;
+    color: #ffffff;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#searchInput::placeholder {
+    color: #777777;
+}
+
+#searchInput:focus {
+    outline: none;
+    border: 2px solid #4ecca3;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #4ecca3;
+    border-radius: 6px;
+    border: 3px solid #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #3aa380;
 }
