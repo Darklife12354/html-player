@@ -15,6 +15,7 @@ const playlistContainer = document.getElementById('playlist-container');
 const uploadFolderBtn = document.getElementById('uploadFolderBtn');
 const volumeControl = document.getElementById('volumeControl');
 const timeDisplay = document.getElementById('time-display');
+const titleDisplay = document.querySelector('title');
 
 volumeControl.addEventListener('input', () => {
     audio.volume = parseFloat(volumeControl.value);
@@ -78,6 +79,9 @@ function playSong(index) {
         isPlaying = true;
         playPauseBtn.innerText = 'Pause';
         updatePlaylist();
+
+        document.title = `Now Playing: ${playlist[index].name}`;
+        titleDisplay.innerText = document.title;
 
         searchInput.value = '';
     }
@@ -155,10 +159,19 @@ function formatTime(time) {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+
 audio.addEventListener('timeupdate', () => {
-    const currentTime = formatTime(audio.currentTime);
-    const duration = formatTime(audio.duration);
-    timeDisplay.innerText = `${currentTime} / ${duration}`;
+    const currentTime = audio.currentTime;
+    const duration = audio.duration;
+    const remainingTime = duration - currentTime;
+    const countdown = formatTime(remainingTime);
+
+    document.title = `${countdown} | ${playlist[currentSongIndex].name}`;
+    titleDisplay.innerText = document.title;
+
+    const currentTimeFormatted = formatTime(currentTime);
+    timeDisplay.innerText = `${currentTimeFormatted} / ${formatTime(duration)}`;
+
 });
 
 const searchInput = document.createElement('input');
@@ -174,7 +187,6 @@ searchInput.addEventListener('input', function () {
     playlistItems.forEach((item) => {
         const itemName = item.innerText.toLowerCase();
 
-        // Check if the search term is included in the song name
         if (itemName.includes(searchTerm)) {
             item.style.display = 'block';
         } else {
