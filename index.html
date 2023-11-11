@@ -236,6 +236,22 @@
             currentSongIndex = 0;
             playSong(currentSongIndex);
         });
+        
+        //Keybinds
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'F5') {
+                if (isPlaying) {
+                    audio.pause();
+                    isPlaying = false;
+                    playPauseBtn.innerText = 'Play';
+                } else {
+                    audio.play();
+                    isPlaying = true;
+                    playPauseBtn.innerText = 'Pause';
+                }
+            }
+        });
     </script>
 
 
