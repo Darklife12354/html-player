@@ -8,7 +8,6 @@
     <link rel="manifest" href="pwa/manifest.json">
 
     <style>
-        
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -96,9 +95,9 @@
 <body>
     <script>
         if (typeof navigator.serviceWorker !== 'undefined') {
-          navigator.serviceWorker.register('pwa/sw.js')
+            navigator.serviceWorker.register('pwa/sw.js')
         }
-      </script>
+    </script>
     <div id="player-container">
         <div id="progress-bar-container">
             <div id="progress-bar"></div>
@@ -136,8 +135,8 @@
         const uploadFolderBtn = document.getElementById('uploadFolderBtn');
 
         function isAudioPaused() {
-        return audio.paused;
-    }
+            return audio.paused;
+        }
         function updatePlaylist() {
             playlistContainer.innerHTML = '';
             playlist.forEach((song, index) => {
@@ -203,7 +202,12 @@
             const progressPercentage = (audio.currentTime / audio.duration) * 100;
             progress.style.width = `${progressPercentage}%`;
         });
-
+        audio.addEventListener('ended', () => {
+            if (!isLooping) {
+                currentSongIndex = (currentSongIndex + 1) % playlist.length;
+                playSong(currentSongIndex);
+            }
+        });
         progress.parentNode.addEventListener('click', (event) => {
             const clickPosition = event.clientX - progress.parentNode.getBoundingClientRect().left;
             const progressBarWidth = progress.parentNode.clientWidth;
