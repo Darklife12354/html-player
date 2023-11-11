@@ -5,100 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Media Player</title>
-    <link rel="manifest" href="pwa/manifest.json">
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-        }
-
-        #player-container {
-            width: 80%;
-            margin: auto;
-            padding: 20px;
-            background-color: #1e1e1e;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            margin-top: 50px;
-        }
-
-        #progress-bar-container {
-            margin-top: 20px;
-            width: 100%;
-            height: 15px;
-            background-color: #383838;
-            position: relative;
-            cursor: pointer;
-        }
-
-        #progress-bar {
-            height: 100%;
-            width: 0;
-            background-color: #4ecca3;
-            border-radius: 10px;
-        }
-
-        #controls-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .control-button {
-            margin: 0 10px;
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            background-color: #4ecca3;
-            color: #121212;
-            border-radius: 5px;
-        }
-
-        .control-button:hover {
-            background-color: #4ecca3;
-            color: #121212;
-        }
-
-        #playlist-container {
-            margin-top: 20px;
-            width: 100%;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .playlist-item {
-            padding: 10px;
-            border-bottom: 1px solid #383838;
-            cursor: pointer;
-        }
-
-        .playlist-item:hover {
-            background-color: #4ecca3;
-            color: #121212;
-        }
-
-        .playlist-item.active {
-            background-color: #1e1e1e;
-            color: #4ecca3;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 
 </head>
 
 <body>
-    <script>
-        if (typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.register('pwa/sw.js')
-        }
-    </script>
     <div id="player-container">
+        <div id="time-display">0:00 / 0:00</div>
         <div id="progress-bar-container">
             <div id="progress-bar"></div>
         </div>
@@ -111,148 +24,15 @@
             <button class="control-button" id="shuffleBtn">Shuffle</button>
             <button class="control-button" id="uploadFolderBtn">Upload Folder</button>
             <input type="range" id="volumeControl" class="volume-control" min="0" max="1" step="0.1" value="1">
+            <div id="volume-bar-container">
+                <div id="volume-bar"></div>
+            </div>
             <input type="file" id="uploadFolder" multiple webkitdirectory directory style="display: none;">
         </div>
 
         <div id="playlist-container"></div>
     </div>
-
-    <script>
-
-        const audio = new Audio();
-        let playlist = [];
-        let currentSongIndex = 0;
-        let isPlaying = false;
-        let isLooping = false;
-
-        const progress = document.getElementById('progress-bar');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const loopBtn = document.getElementById('loopBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        const uploadFolder = document.getElementById('uploadFolder');
-        const playlistContainer = document.getElementById('playlist-container');
-        const uploadFolderBtn = document.getElementById('uploadFolderBtn');
-        const volumeControl = document.getElementById('volumeControl');
-
-        volumeControl.addEventListener('input', () => {
-            audio.volume = parseFloat(volumeControl.value);
-        });
-        function updatePlaylist() {
-            playlistContainer.innerHTML = '';
-            playlist.forEach((song, index) => {
-                const listItem = document.createElement('div');
-                listItem.classList.add('playlist-item');
-                listItem.innerText = song.name;
-                if (index === currentSongIndex) {
-                    listItem.classList.add('active');
-                }
-                listItem.addEventListener('click', () => {
-                    playSong(index);
-                });
-                playlistContainer.appendChild(listItem);
-            });
-        }
-
-        function playSong(index) {
-            if (index >= 0 && index < playlist.length) {
-                currentSongIndex = index;
-                audio.src = URL.createObjectURL(playlist[index]);
-                audio.play();
-                isPlaying = true;
-                playPauseBtn.innerText = 'Pause';
-                updatePlaylist();
-            }
-        }
-
-        playPauseBtn.addEventListener('click', () => {
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
-                playPauseBtn.innerText = 'Play';
-            } else {
-                audio.play();
-                isPlaying = true;
-                playPauseBtn.innerText = 'Pause';
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex + 1) % playlist.length;
-            playSong(currentSongIndex);
-        });
-
-        prevBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
-            playSong(currentSongIndex);
-        });
-
-        loopBtn.addEventListener('click', () => {
-            isLooping = !isLooping;
-            loopBtn.innerText = `Loop: ${isLooping ? 'On' : 'Off'}`;
-            audio.loop = isLooping;
-        });
-
-        shuffleBtn.addEventListener('click', () => {
-            playlist.sort(() => Math.random() - 0.5);
-            currentSongIndex = 0;
-            playSong(currentSongIndex);
-        });
-
-        audio.addEventListener('timeupdate', () => {
-            const progressPercentage = (audio.currentTime / audio.duration) * 100;
-            progress.style.width = `${progressPercentage}%`;
-        });
-        audio.addEventListener('ended', () => {
-            if (!isLooping) {
-                currentSongIndex = (currentSongIndex + 1) % playlist.length;
-                playSong(currentSongIndex);
-            }
-        });
-        progress.parentNode.addEventListener('click', (event) => {
-            const clickPosition = event.clientX - progress.parentNode.getBoundingClientRect().left;
-            const progressBarWidth = progress.parentNode.clientWidth;
-            const seekTime = (clickPosition / progressBarWidth) * audio.duration;
-            audio.currentTime = seekTime;
-        });
-
-        uploadFolder.addEventListener('change', () => {
-            const files = uploadFolder.files;
-            playlist = Array.from(files);
-            updatePlaylist();
-            currentSongIndex = 0;
-            playSong(currentSongIndex);
-        });
-
-        uploadFolderBtn.addEventListener('click', () => {
-            uploadFolder.click();
-        });
-
-        uploadFolder.addEventListener('change', () => {
-            const files = uploadFolder.files;
-            playlist = Array.from(files);
-            updatePlaylist();
-            currentSongIndex = 0;
-            playSong(currentSongIndex);
-        });
-
-        //Keybinds
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'F5') {
-                if (isPlaying) {
-                    audio.pause();
-                    isPlaying = false;
-                    playPauseBtn.innerText = 'Play';
-                } else {
-                    audio.play();
-                    isPlaying = true;
-                    playPauseBtn.innerText = 'Pause';
-                }
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 
 </body>
 
